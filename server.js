@@ -31,7 +31,7 @@ app.get("/entries", (req, res) => {
     if (err) {
       return res.status(500).send("데이터 조회 오류");
     }
-    res.json(results);
+    return res.json(results);
   });
 });
 
@@ -43,16 +43,18 @@ app.post("/entries", (req, res) => {
     return res.status(400).send("이름과 메시지를 모두 입력해주세요!");
   }
 
-  const timestamp = new Date().toLocaleString();
-  const query = `INSERT INTO entries (name, message, timestamp) VALUES (name, ${name}), (message, ${message}), (timestamp, ${timestamp})`;
-  db.query({query}, (err, results) => {
+  // 'YYYY-MM-DD HH:MM:SS' 형식으로 변환
+  const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  const query = `INSERT INTO entries (name, message, timestamp) VALUES (?, ?, ?)`;
+  db.query(query, [name, message, timestamp], (err, results) => {
     if (err) {
       return res.status(500);
     }
-    console.log(results)
-    res.status(201).send("메시지가 추가되었습니다.");
+    return res.json(results);
   });
 });
+
 
 // 서버 실행
 app.listen(port, () => {
